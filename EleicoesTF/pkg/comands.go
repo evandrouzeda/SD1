@@ -7,20 +7,25 @@ import (
 	"os"
 )
 
-//Arquivo is as struct to represent a file
-type Arquivo struct {
+//Candidato is as struct to represent a file
+type Candidato struct {
 	Nome string `json:"nome"`
-	Dono string `json:"dono"`
+	Num  string `json:"num"`
 }
 
-//CriaArquivo create a file
-func CriaArquivo(nome string, dono string) Arquivo {
-	return Arquivo{nome, dono}
+//Voto is a struct to represent a vote
+type Voto struct {
+	Numero string `json:"numero"`
+}
+
+//CriaCandidato create a file
+func CriaCandidato(nome string, numero string) Candidato {
+	return Candidato{nome, numero}
 }
 
 //Login is a struct to send a login comand
 type Login struct {
-	Comando string `json:"comando"`
+	Comando string `json:"cmd"`
 	Usuario string `json:"usuario"`
 	Senha   string `json:"senha"`
 }
@@ -42,7 +47,7 @@ func LOGINR() Loginr {
 
 //Logout is a struct to send a logout comand
 type Logout struct {
-	Comando string `json:"comando"`
+	Comando string `json:"cmd"`
 }
 
 //LOGOUT returns a Logout struct
@@ -60,75 +65,9 @@ func LOGOUTR() Logoutr {
 	return Logoutr{""}
 }
 
-//Upload struct to be transport
-type Upload struct {
-	Comando string  `json:"comando"`
-	Arquivo Arquivo `json:"arquivo"`
-}
-
-//UPLOAD returns a upload struct
-func UPLOAD(comando string, arquivo Arquivo) Upload {
-	return Upload{comando, arquivo}
-}
-
-//Uploadr returns a upload struct
-type Uploadr struct {
-	Codigo string `json:"codigo"`
-	Res    string `json:"res"`
-}
-
-//UPLOADR returns
-func UPLOADR() Uploadr {
-	return Uploadr{}
-}
-
-//Search returns a upload struct
-type Search struct {
-	Comando string `json:"comando"`
-	Nome    string `json:"nome"`
-}
-
-//SEARCH returns a upload struct
-func SEARCH(comando string, nome string) Search {
-	return Search{comando, nome}
-}
-
-//Searchr returns a upload struct
-type Searchr struct {
-	Codigo string `json:"codigo"`
-	Res    string `json:"res"`
-}
-
-//SEARCHR returns
-func SEARCHR() Searchr {
-	return Searchr{}
-}
-
-//Download returns a upload struct
-type Download struct {
-	Comando string `json:"comando"`
-	Nome    string `json:"nome"`
-}
-
-//DOWNLOAD returns a upload struct
-func DOWNLOAD(comando string, nome string) Download {
-	return Download{comando, nome}
-}
-
-//Downloadr returns a upload struct
-type Downloadr struct {
-	Codigo  string  `json:"codigo"`
-	Arquivo Arquivo `json:"arquivo"`
-}
-
-//DOWNLOADR returns
-func DOWNLOADR() Downloadr {
-	return Downloadr{}
-}
-
 //List returns a upload struct
 type List struct {
-	Comando string `json:"comando"`
+	Comando string `json:"cmd"`
 }
 
 //LIST returns a List struct
@@ -138,13 +77,82 @@ func LIST(comando string) List {
 
 //Listr returns a upload struct
 type Listr struct {
-	Codigo string    `json:"codigo"`
-	Lista  []Arquivo `json:"lista"`
+	Codigo string      `json:"codigo"`
+	Lista  []Candidato `json:"lista"`
 }
 
 //LISTR returns
 func LISTR() Listr {
 	return Listr{}
+}
+
+//Cadas 'e a struct para mensagem de cadastro
+type Cadas struct {
+	Comando string `json:"cmd"`
+	Type    string `json:"type"`
+	Qtd     int    `json:"qtd"`
+	Num     string `json:"num"`
+	Nome    string `json:"nome"`
+}
+
+//CriaCadasDecla cria uma struct Cadas com os parametros necessarios para tipo declaracao
+func CriaCadasDecla(qtd int) Cadas {
+	return Cadas{Comando: "cadas", Type: "decla", Qtd: qtd}
+}
+
+//CriaCadasCand cria uma struct Cadas com os parametros necessarios para tipo declaracao
+func CriaCadasCand(nome string, numero string) Cadas {
+	return Cadas{Comando: "cadas", Type: "decla", Nome: nome, Num: numero}
+}
+
+//Cadasr 'e a struct para mensagem de cadastro
+type Cadasr struct {
+	Cod string `json:"cod"`
+}
+
+//CADASR returns
+func CADASR() Cadasr {
+	return Cadasr{}
+}
+
+//Inicia 'e a struct para mensagem de cadastro
+type Inicia struct {
+	Comando string `json:"cmd"`
+}
+
+//INICIA returns Inicia
+func INICIA() Inicia {
+	return Inicia{Comando: "inicia"}
+}
+
+//Iniciar 'e a struct para fazer o replay do inicia
+type Iniciar struct {
+	Cod string `json:"cod"`
+}
+
+//INICIAR returns Iniciar
+func INICIAR() Iniciar {
+	return Iniciar{}
+}
+
+//Final 'e a struct para mensagem de cadastro
+type Final struct {
+	Comando string `json:"cmd"`
+}
+
+//FINAL returns Final
+func FINAL() Final {
+	return Final{Comando: "final"}
+}
+
+//Finalr 'e a struct para fazer o replay do Final
+type Finalr struct {
+	Cod string `json:"cod"`
+}
+
+//FINALR returns Finalr
+func FINALR() Finalr {
+	return Finalr{}
 }
 
 //SendMSG is function to send the message to server
@@ -190,7 +198,7 @@ func WaitR(ln net.Conn, cmd interface{}) {
 func FindComando(msg interface{}) string {
 	mapa := msg.(map[string]interface{})
 	for k, v := range mapa {
-		if k == "comando" {
+		if k == "cmd" {
 			return fmt.Sprintf("%v", v)
 		}
 	}

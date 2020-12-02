@@ -39,9 +39,11 @@ func fileMenagement(cliente Cliente) {
 		var jsn interface{}
 
 		msg, n := comands.Wait(cliente.conexao)
-
 		erro := json.Unmarshal(msg.Buf[:n], &jsn)
 		trataErros(erro)
+		if jsn == nil {
+			break
+		}
 
 		var cmd = comands.FindComando(jsn)
 		if cliente.autorizado {
@@ -136,17 +138,19 @@ func main() {
 
 	defer ln.Close()
 
-	conexao, erro1 := ln.Accept()
+	for {
+		conexao, erro1 := ln.Accept()
 
-	trataErros(erro1)
+		trataErros(erro1)
 
-	fmt.Println("Conexao Aceita...")
+		fmt.Println("Conexao Aceita...")
 
-	cliente := Cliente{
-		id:         1,
-		conexao:    conexao,
-		autorizado: false,
+		cliente := Cliente{
+			id:         1,
+			conexao:    conexao,
+			autorizado: false,
+		}
+
+		go fileMenagement(cliente)
 	}
-
-	fileMenagement(cliente)
 }
