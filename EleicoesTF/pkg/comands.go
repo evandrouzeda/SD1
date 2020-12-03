@@ -9,18 +9,19 @@ import (
 
 //Candidato is as struct to represent a file
 type Candidato struct {
-	Nome string `json:"nome"`
-	Num  string `json:"num"`
+	Nome  string `json:"nome"`
+	Num   string `json:"num"`
+	Votos int    `json:"votos"`
 }
 
 //Voto is a struct to represent a vote
 type Voto struct {
-	Numero string `json:"numero"`
+	Num string `json:"num"`
 }
 
 //CriaCandidato create a file
-func CriaCandidato(nome string, numero string) Candidato {
-	return Candidato{nome, numero}
+func CriaCandidato(nome string, num string) Candidato {
+	return Candidato{Nome: nome, Num: num, Votos: 0}
 }
 
 //Login is a struct to send a login comand
@@ -77,8 +78,8 @@ func LIST(comando string) List {
 
 //Listr returns a upload struct
 type Listr struct {
-	Codigo string      `json:"codigo"`
-	Lista  []Candidato `json:"lista"`
+	Cod   string      `json:"cod"`
+	Lista []Candidato `json:"lista"`
 }
 
 //LISTR returns
@@ -153,6 +154,68 @@ type Finalr struct {
 //FINALR returns Finalr
 func FINALR() Finalr {
 	return Finalr{}
+}
+
+//Apura struct
+type Apura struct {
+	Comando string `json:"cmd"`
+}
+
+//APURA returns Final
+func APURA() Apura {
+	return Apura{Comando: "apura"}
+}
+
+//Apurar 'e a struct para fazer o replay do Final
+type Apurar struct {
+	Cod string `json:"cod"`
+}
+
+//APURAR returns Finalr
+func APURAR() Apurar {
+	return Apurar{}
+}
+
+//Votar 'e a struct para fazer o replay do Final
+type Votar struct {
+	Cod string `json:"cod"`
+	Num string `json:"num"`
+}
+
+//VOTAR returns Finalr
+func VOTAR() Votar {
+	return Votar{}
+}
+
+//Votarr struct
+type Votarr struct {
+	Cod string `json:"cod"`
+}
+
+//VOTARR returns Final
+func VOTARR() Votarr {
+	return Votarr{}
+}
+
+//Resul struct
+type Resul struct {
+	Comando string `json:"cmd"`
+}
+
+//RESUL returns a List struct
+func RESUL(comando string) List {
+	return List{comando}
+}
+
+//Resulr returns a upload struct
+type Resulr struct {
+	Cod   string      `json:"cod"`
+	Lista []Candidato `json:"lista"`
+}
+
+//RESULR returns
+func RESULR() Resulr {
+	return Resulr{}
 }
 
 //SendMSG is function to send the message to server

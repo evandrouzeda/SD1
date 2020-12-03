@@ -28,17 +28,20 @@ var Candidatos []comands.Candidato
 //Votos e uma lista de votos
 var Votos []comands.Voto
 
+//Resultado 'e uma lista de candidatos com o numero votos
+var Resultado []comands.Candidato
+
 //Eleicao guarda os estados da eleicao
 var Eleicao Estados
 
 //funcao para procurar aquivo na lista
-func procuraCandidato(numero string) (bool, int) {
+func procuraCandidato(numero string) bool {
 	for i := 0; i < len(Candidatos); i++ {
 		if Candidatos[i].Num == numero {
-			return true, i
+			return true
 		}
 	}
-	return false, -1
+	return false
 }
 
 func trataErros(err error) {
@@ -105,28 +108,71 @@ func fileMenagement(cliente Cliente) {
 					comands.SendMSG(cliente.conexao, msg)
 					break
 				case "apura":
-					msg := comands.FINALR()
-					/*
-						Aqui eu tenho que fazer uma funcao que pega as lista de votos e
-						verifica quanto tem de cada um e cria uma lista resultado
-					*/
+					msg := comands.APURAR()
+					msg.Cod = "Ok"
+					for i := 0; i < len(Votos); i++ {
+						for j := 0; j < len(Candidatos); j++ {
+							if Votos[i].Num == Candidatos[j].Num {
+								Candidatos[j].Votos++
+							}
+						}
+					}
+					// tem que fazer um ordenador
+					/* for j := 0; j < len(Candidatos); j++ {
+						if Votos[i].Num == Candidatos[j].Num {
+							Candidatos[j].Votos++
+						}
+					} */
 					comands.SendMSG(cliente.conexao, msg)
 					break
 				}
-
 			}
 			switch cmd {
 			case "logout":
 				cliente.conexao.Close()
 				break
 			case "list":
-				var des comands.List
-				comands.TornaStruct(msg.Buf[:n], &des)
-
-				msg := comands.LISTR()
-				msg.Codigo = "OK"
-				msg.Lista = Candidatos
-				comands.SendMSG(cliente.conexao, msg)
+				reply := comands.LISTR()
+				if Eleicao.acontecendo {
+					var des comands.List
+					comands.TornaStruct(msg.Buf[:n], &des)
+					reply.Cod = "OK"
+					reply.Lista = Candidatos
+				} else {
+					reply.Cod = "ERRO"
+					var vazioCand []comands.Candidato
+					reply.Lista = vazioCand
+				}
+				comands.SendMSG(cliente.conexao, reply)
+				break
+			case "votar":
+				reply := comands.VOTARR()
+				if Eleicao.acontecendo {
+					var des comands.Votar
+					comands.TornaStruct(msg.Buf[:n], &des)
+					if procuraCandidato(des.Num) {
+						reply.Cod = "Ok"
+						num := comands.Voto{Num: des.Num}
+						Votos = append(Votos, num)
+					} else {
+						reply.Cod = "ERRO"
+					}
+				} else {
+					reply.Cod = "ERRO"
+				}
+				comands.SendMSG(cliente.conexao, reply)
+				break
+			case "resul":
+				reply := comands.RESULR()
+				if !Eleicao.acontecendo {
+					var des comands.Resul
+					comands.TornaStruct(msg.Buf[:n], &des)
+					reply.Cod = "OK"
+					reply.Lista = Resultado
+				} else {
+					reply.Cod = "ERRO"
+				}
+				comands.SendMSG(cliente.conexao, reply)
 				break
 			default:
 				fmt.Println("comando invalido")

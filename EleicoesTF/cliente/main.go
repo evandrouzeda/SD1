@@ -85,11 +85,11 @@ func main() {
 			comands.WaitR(ln, cmd)
 			break
 		case "apura":
-			msg := comands.FINAL()
+			msg := comands.APURA()
 			comands.SendMSG(ln, msg)
 
 			//Wait for the reply
-			cmd := comands.FINALR()
+			cmd := comands.APURAR()
 			comands.WaitR(ln, cmd)
 			break
 		default:
