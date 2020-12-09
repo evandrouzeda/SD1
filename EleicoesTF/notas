@@ -1,1 +1,3 @@
-[] - tenho que fazer um ordenador
+para fazer o resul com espera tenho que mudar todo esquema de espera replay, fazer um
+unico escuta que fica escutando os replays dai fazer um switch pra saber qual tenho que fazer
+tipo o do servidor so que do cliente 

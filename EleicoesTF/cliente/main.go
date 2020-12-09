@@ -39,7 +39,10 @@ func main() {
 			comands.SendMSG(ln, msg)
 
 			cmd := comands.LOGINR()
-			comands.WaitR(ln, cmd)
+			comands.WaitR(ln, &cmd)
+			if cmd.Codigo == "Ok" {
+				fmt.Println("logado")
+			}
 			break
 		case "logout":
 			msg := comands.LOGOUT(s[0])
@@ -55,7 +58,14 @@ func main() {
 
 			//Wait for the reply
 			cmd := comands.LISTR()
-			comands.WaitR(ln, cmd)
+			comands.WaitR(ln, &cmd)
+			if cmd.Cod == "Ok" {
+				for i := 0; i < len(cmd.Lista); i++ {
+					fmt.Printf("Candidato: %v - %v \n", cmd.Lista[i].Nome, cmd.Lista[i].Num)
+				}
+			} else {
+				fmt.Println(cmd.Cod)
+			}
 			break
 		case "cadas":
 			//vou ter que colocar um for aqui dentro para ficar enviando a
@@ -63,9 +73,24 @@ func main() {
 				qtd, _ := strconv.Atoi(s[2])
 				cmd := comands.CriaCadasDecla(qtd)
 				comands.SendMSG(ln, cmd)
-			} else if s[1] == "cand" {
-				cmd := comands.CriaCadasCand(s[2], s[3])
-				comands.SendMSG(ln, cmd)
+				for i := 0; i < qtd; i++ {
+					reader := bufio.NewReader(os.Stdin)
+					fmt.Printf("Candidato %v: ", i)
+					text, _ := reader.ReadString('\n')
+					cand := strings.Split(strings.Replace(text, "\n", "", 1), " ")
+					cmd := comands.CriaCadasCand(cand[0], cand[1])
+					comands.SendMSG(ln, cmd)
+				}
+				//Wait for the reply
+				reply := comands.CADASR()
+				comands.WaitR(ln, &reply)
+				if reply.Cod == "Ok" {
+					fmt.Println("Candidatos inseridos com sucesso!!!")
+				} else {
+					fmt.Println("Erro ao inserir candidatos...")
+				}
+			} else {
+				fmt.Println("ainda nao foi declarado a quantidade de candidatos")
 			}
 			break
 		case "inicia":
@@ -73,24 +98,79 @@ func main() {
 			comands.SendMSG(ln, msg)
 
 			//Wait for the reply
-			cmd := comands.INICIAR()
-			comands.WaitR(ln, cmd)
+			reply := comands.INICIAR()
+			comands.WaitR(ln, &reply)
+			if reply.Cod == "Ok" {
+				fmt.Println("Eleicao iniciada com sucesso!!!")
+			} else {
+				fmt.Println("Erro ao inciar eleicao...")
+			}
 			break
 		case "final":
 			msg := comands.FINAL()
 			comands.SendMSG(ln, msg)
 
 			//Wait for the reply
-			cmd := comands.FINALR()
-			comands.WaitR(ln, cmd)
+			reply := comands.FINALR()
+			comands.WaitR(ln, &reply)
+			if reply.Cod == "Ok" {
+				fmt.Println("Eleicao finalizada com sucesso!!!")
+			} else {
+				fmt.Println("Erro ao finalizar eleicao...")
+			}
 			break
 		case "apura":
 			msg := comands.APURA()
 			comands.SendMSG(ln, msg)
 
 			//Wait for the reply
-			cmd := comands.APURAR()
-			comands.WaitR(ln, cmd)
+			reply := comands.APURAR()
+			comands.WaitR(ln, &reply)
+			if reply.Cod == "Ok" {
+				for i := 0; i < len(reply.Apuracao); i++ {
+					fmt.Printf("Candidato: %v - %v \n", reply.Apuracao[i].Nome, reply.Apuracao[i].Votos)
+				}
+			} else {
+				fmt.Println("Erro ao Apurar eleicao...")
+			}
+			break
+		case "votar":
+			msg := comands.VOTAR(s[1])
+			comands.SendMSG(ln, msg)
+
+			//Wait for the reply
+			reply := comands.VOTARR()
+			comands.WaitR(ln, &reply)
+			if reply.Cod == "Ok" {
+				fmt.Println("Voto contabilizado com sucesso!!!")
+			} else {
+				fmt.Println("Erro ao contabilizar voto...")
+			}
+			break
+		case "resul":
+			msg := comands.RESUL()
+			comands.SendMSG(ln, msg)
+
+			//Wait for the reply
+			reply := comands.RESULR()
+			comands.WaitR(ln, &reply)
+			if reply.Cod == "Ok" {
+				for i := 0; i < len(reply.Resultado); i++ {
+					fmt.Printf("Candidato: %v - %v \n", reply.Resultado[i].Nome, reply.Resultado[i].Votos)
+				}
+			} else {
+				go func() {
+					reply := comands.RESULR()
+					comands.WaitR(ln, &reply)
+					fmt.Print("recebeu alguma Coisa")
+					if reply.Cod == "Ok" {
+						for i := 0; i < len(reply.Resultado); i++ {
+							fmt.Printf("Candidato: %v - %v \n", reply.Resultado[i].Nome, reply.Resultado[i].Votos)
+						}
+					}
+				}()
+				fmt.Println("Esperando a Eleicao terminar")
+			}
 			break
 		default:
 			fmt.Println("comando invalido")

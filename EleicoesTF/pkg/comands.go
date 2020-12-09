@@ -168,7 +168,8 @@ func APURA() Apura {
 
 //Apurar 'e a struct para fazer o replay do Final
 type Apurar struct {
-	Cod string `json:"cod"`
+	Cod      string      `json:"cod"`
+	Apuracao []Candidato `json:"apuracao"`
 }
 
 //APURAR returns Finalr
@@ -178,13 +179,13 @@ func APURAR() Apurar {
 
 //Votar 'e a struct para fazer o replay do Final
 type Votar struct {
-	Cod string `json:"cod"`
-	Num string `json:"num"`
+	Comando string `json:"cmd"`
+	Num     string `json:"num"`
 }
 
 //VOTAR returns Finalr
-func VOTAR() Votar {
-	return Votar{}
+func VOTAR(num string) Votar {
+	return Votar{Comando: "votar", Num: num}
 }
 
 //Votarr struct
@@ -203,14 +204,14 @@ type Resul struct {
 }
 
 //RESUL returns a List struct
-func RESUL(comando string) List {
-	return List{comando}
+func RESUL() Resul {
+	return Resul{Comando: "resul"}
 }
 
 //Resulr returns a upload struct
 type Resulr struct {
-	Cod   string      `json:"cod"`
-	Lista []Candidato `json:"lista"`
+	Cod       string      `json:"cod"`
+	Resultado []Candidato `json:"resul"`
 }
 
 //RESULR returns
@@ -225,8 +226,8 @@ func SendMSG(ln net.Conn, msg interface{}) {
 		fmt.Print(err)
 		return
 	}
-	s1 := string(js)
-	fmt.Println(s1)
+	//s1 := string(js)
+	//fmt.Println(s1)
 	ln.Write(js)
 }
 
@@ -241,7 +242,7 @@ func Wait(ln net.Conn) (*Leitor, int) {
 }
 
 //WaitR is a function that wait for Replay
-func WaitR(ln net.Conn, cmd interface{}) {
+func WaitR(ln net.Conn, cmd interface{}) interface{} {
 	msg := CriaLeitor(ln, 4096)
 	n, err := msg.rd.Read(msg.Buf[msg.w:])
 	if err != nil {
@@ -254,7 +255,9 @@ func WaitR(ln net.Conn, cmd interface{}) {
 		fmt.Println(erro)
 	}
 
-	fmt.Println(cmd)
+	//fmt.Println(cmd)
+	TornaStruct(msg.Buf[:n], &cmd)
+	return cmd
 }
 
 //FindComando procura o atributo comando dentro da interface

@@ -34,6 +34,9 @@ var Resultado []comands.Candidato
 //Eleicao guarda os estados da eleicao
 var Eleicao Estados
 
+//EsperaResult e uma lista de clientes que esta esperando o resultado
+var EsperaResult []Cliente
+
 //funcao para procurar aquivo na lista
 func procuraCandidato(numero string) bool {
 	for i := 0; i < len(Candidatos); i++ {
@@ -42,6 +45,16 @@ func procuraCandidato(numero string) bool {
 		}
 	}
 	return false
+}
+
+//funcao para enviar notificacao de termino para clientes
+func mandaResultAll() {
+	result := comands.RESULR()
+	result.Cod = "Ok"
+	result.Resultado = Candidatos
+	for i := 0; i < len(EsperaResult); i++ {
+		comands.SendMSG(EsperaResult[i].conexao, result)
+	}
 }
 
 func trataErros(err error) {
@@ -102,6 +115,14 @@ func fileMenagement(cliente Cliente) {
 					if Eleicao.acontecendo {
 						Eleicao.acontecendo = false
 						msg.Cod = "Ok"
+						for i := 0; i < len(Votos); i++ {
+							for j := 0; j < len(Candidatos); j++ {
+								if Votos[i].Num == Candidatos[j].Num {
+									Candidatos[j].Votos++
+								}
+							}
+						}
+						mandaResultAll()
 					} else {
 						msg.Cod = "ERRO"
 					}
@@ -109,20 +130,19 @@ func fileMenagement(cliente Cliente) {
 					break
 				case "apura":
 					msg := comands.APURAR()
-					msg.Cod = "Ok"
-					for i := 0; i < len(Votos); i++ {
-						for j := 0; j < len(Candidatos); j++ {
-							if Votos[i].Num == Candidatos[j].Num {
-								Candidatos[j].Votos++
+					if Eleicao.acontecendo {
+						msg.Cod = "Ok"
+						for i := 0; i < len(Votos); i++ {
+							for j := 0; j < len(Candidatos); j++ {
+								if Votos[i].Num == Candidatos[j].Num {
+									Candidatos[j].Votos++
+								}
 							}
 						}
+						msg.Apuracao = Candidatos
+					} else {
+						msg.Cod = "ERRO"
 					}
-					// tem que fazer um ordenador
-					/* for j := 0; j < len(Candidatos); j++ {
-						if Votos[i].Num == Candidatos[j].Num {
-							Candidatos[j].Votos++
-						}
-					} */
 					comands.SendMSG(cliente.conexao, msg)
 					break
 				}
@@ -136,7 +156,7 @@ func fileMenagement(cliente Cliente) {
 				if Eleicao.acontecendo {
 					var des comands.List
 					comands.TornaStruct(msg.Buf[:n], &des)
-					reply.Cod = "OK"
+					reply.Cod = "Ok"
 					reply.Lista = Candidatos
 				} else {
 					reply.Cod = "ERRO"
@@ -167,15 +187,18 @@ func fileMenagement(cliente Cliente) {
 				if !Eleicao.acontecendo {
 					var des comands.Resul
 					comands.TornaStruct(msg.Buf[:n], &des)
-					reply.Cod = "OK"
-					reply.Lista = Resultado
+					reply.Cod = "Ok"
+					reply.Resultado = Candidatos
 				} else {
 					reply.Cod = "ERRO"
+					EsperaResult = append(EsperaResult, cliente)
 				}
 				comands.SendMSG(cliente.conexao, reply)
 				break
 			default:
-				fmt.Println("comando invalido")
+				if !cliente.admin {
+					fmt.Printf("comando invalido %v \n", cmd)
+				}
 				break
 			}
 		} else {
@@ -191,7 +214,7 @@ func fileMenagement(cliente Cliente) {
 					cliente.admin = false
 				}
 				msg := comands.LOGINR()
-				msg.Codigo = "OK"
+				msg.Codigo = "Ok"
 				comands.SendMSG(cliente.conexao, msg)
 				break
 			default:
