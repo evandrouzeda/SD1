@@ -38,12 +38,13 @@ func LOGIN(id string, usuario string, senha string) Login {
 
 //Loginr is a struct to reply a login request
 type Loginr struct {
-	Codigo string `json:"codigo"`
+	Comando string `json:"cmd"`
+	Codigo  string `json:"cod"`
 }
 
 //LOGINR retuns a Loginr struct
 func LOGINR() Loginr {
-	return Loginr{""}
+	return Loginr{Comando: "loginr"}
 }
 
 //Logout is a struct to send a logout comand
@@ -58,12 +59,13 @@ func LOGOUT(id string) Logout {
 
 //Logoutr is a struct to send a logout comand
 type Logoutr struct {
-	Codigo string `json:"codigo"`
+	Comando string `json:"cmd"`
+	Codigo  string `json:"cod"`
 }
 
 //LOGOUTR returns a Logout struct
 func LOGOUTR() Logoutr {
-	return Logoutr{""}
+	return Logoutr{Comando: "logoutr"}
 }
 
 //List returns a upload struct
@@ -78,13 +80,14 @@ func LIST(comando string) List {
 
 //Listr returns a upload struct
 type Listr struct {
-	Cod   string      `json:"cod"`
-	Lista []Candidato `json:"lista"`
+	Comando string      `json:"cmd"`
+	Cod     string      `json:"cod"`
+	Lista   []Candidato `json:"lista"`
 }
 
 //LISTR returns
 func LISTR() Listr {
-	return Listr{}
+	return Listr{Comando: "listr"}
 }
 
 //Cadas 'e a struct para mensagem de cadastro
@@ -101,19 +104,20 @@ func CriaCadasDecla(qtd int) Cadas {
 	return Cadas{Comando: "cadas", Type: "decla", Qtd: qtd}
 }
 
-//CriaCadasCand cria uma struct Cadas com os parametros necessarios para tipo declaracao
+//CriaCadasCand cria uma struct Cadas com os parametros necessarios para tipo candidato
 func CriaCadasCand(nome string, numero string) Cadas {
-	return Cadas{Comando: "cadas", Type: "decla", Nome: nome, Num: numero}
+	return Cadas{Comando: "cadas", Type: "candi", Nome: nome, Num: numero}
 }
 
 //Cadasr 'e a struct para mensagem de cadastro
 type Cadasr struct {
-	Cod string `json:"cod"`
+	Comando string `json:"cmd"`
+	Cod     string `json:"cod"`
 }
 
 //CADASR returns
 func CADASR() Cadasr {
-	return Cadasr{}
+	return Cadasr{Comando: "cadasr"}
 }
 
 //Inicia 'e a struct para mensagem de cadastro
@@ -128,12 +132,13 @@ func INICIA() Inicia {
 
 //Iniciar 'e a struct para fazer o replay do inicia
 type Iniciar struct {
-	Cod string `json:"cod"`
+	Comando string `json:"cmd"`
+	Cod     string `json:"cod"`
 }
 
 //INICIAR returns Iniciar
 func INICIAR() Iniciar {
-	return Iniciar{}
+	return Iniciar{Comando: "iniciar"}
 }
 
 //Final 'e a struct para mensagem de cadastro
@@ -148,12 +153,13 @@ func FINAL() Final {
 
 //Finalr 'e a struct para fazer o replay do Final
 type Finalr struct {
-	Cod string `json:"cod"`
+	Comando string `json:"cmd"`
+	Cod     string `json:"cod"`
 }
 
 //FINALR returns Finalr
 func FINALR() Finalr {
-	return Finalr{}
+	return Finalr{Comando: "finalr"}
 }
 
 //Apura struct
@@ -168,13 +174,14 @@ func APURA() Apura {
 
 //Apurar 'e a struct para fazer o replay do Final
 type Apurar struct {
+	Comando  string      `json:"cmd"`
 	Cod      string      `json:"cod"`
 	Apuracao []Candidato `json:"apuracao"`
 }
 
 //APURAR returns Finalr
 func APURAR() Apurar {
-	return Apurar{}
+	return Apurar{Comando: "apurar"}
 }
 
 //Votar 'e a struct para fazer o replay do Final
@@ -190,12 +197,13 @@ func VOTAR(num string) Votar {
 
 //Votarr struct
 type Votarr struct {
-	Cod string `json:"cod"`
+	Comando string `json:"cmd"`
+	Cod     string `json:"cod"`
 }
 
 //VOTARR returns Final
 func VOTARR() Votarr {
-	return Votarr{}
+	return Votarr{Comando: "votarr"}
 }
 
 //Resul struct
@@ -210,13 +218,14 @@ func RESUL() Resul {
 
 //Resulr returns a upload struct
 type Resulr struct {
+	Comando   string      `json:"cmd"`
 	Cod       string      `json:"cod"`
 	Resultado []Candidato `json:"resul"`
 }
 
 //RESULR returns
 func RESULR() Resulr {
-	return Resulr{}
+	return Resulr{Comando: "resulr"}
 }
 
 //SendMSG is function to send the message to server
@@ -258,6 +267,26 @@ func WaitR(ln net.Conn, cmd interface{}) interface{} {
 	//fmt.Println(cmd)
 	TornaStruct(msg.Buf[:n], &cmd)
 	return cmd
+}
+
+//WaitResul is a function that wait for Replay
+func WaitResul(ln net.Conn, data interface{}) {
+	msg := CriaLeitor(ln, 4096)
+	n, err := msg.rd.Read(msg.Buf[msg.w:])
+	if err != nil {
+		fmt.Println("Cliente desconectou", err)
+		os.Exit(3)
+	}
+	erro := json.Unmarshal(msg.Buf[:n], &data)
+	if erro != nil {
+		fmt.Println(erro)
+	}
+	var cmd = FindComando(data)
+
+	if cmd == "resulr" {
+		TornaStruct(msg.Buf[:n], &data)
+	}
+	//fmt.Println(cmd)
 }
 
 //FindComando procura o atributo comando dentro da interface

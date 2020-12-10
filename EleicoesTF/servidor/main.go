@@ -18,8 +18,6 @@ type Cliente struct {
 //Estados diz qual 'e o estado da eleicao
 type Estados struct {
 	acontecendo bool
-	inicio      string
-	final       string
 }
 
 //Candidatos e uma lista de Candidatos
@@ -63,8 +61,8 @@ func trataErros(err error) {
 	}
 }
 
-//aqui e onde as mensagem dos cliente sao tratadas
-func fileMenagement(cliente Cliente) {
+//EleicoesMain aqui e onde as mensagem dos cliente sao tratadas
+func EleicoesMain(cliente Cliente) {
 	for {
 		var jsn interface{}
 
@@ -149,13 +147,15 @@ func fileMenagement(cliente Cliente) {
 			}
 			switch cmd {
 			case "logout":
-				cliente.conexao.Close()
+				cliente.autorizado = false
+				cliente.admin = false
+				msg := comands.LOGOUTR()
+				msg.Codigo = "Ok"
+				comands.SendMSG(cliente.conexao, msg)
 				break
 			case "list":
 				reply := comands.LISTR()
 				if Eleicao.acontecendo {
-					var des comands.List
-					comands.TornaStruct(msg.Buf[:n], &des)
 					reply.Cod = "Ok"
 					reply.Lista = Candidatos
 				} else {
@@ -185,8 +185,6 @@ func fileMenagement(cliente Cliente) {
 			case "resul":
 				reply := comands.RESULR()
 				if !Eleicao.acontecendo {
-					var des comands.Resul
-					comands.TornaStruct(msg.Buf[:n], &des)
 					reply.Cod = "Ok"
 					reply.Resultado = Candidatos
 				} else {
@@ -221,7 +219,7 @@ func fileMenagement(cliente Cliente) {
 				fmt.Println("comando invalido")
 				msg := comands.LOGINR()
 				msg.Codigo = "INVALID"
-				cliente.autorizado = true
+				cliente.autorizado = false
 				comands.SendMSG(cliente.conexao, msg)
 				break
 			}
@@ -250,6 +248,6 @@ func main() {
 			autorizado: false,
 		}
 
-		go fileMenagement(cliente)
+		go EleicoesMain(cliente)
 	}
 }
